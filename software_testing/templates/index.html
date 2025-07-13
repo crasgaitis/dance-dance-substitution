@@ -1,115 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DDR Web</title>
+  <title>Dance-Dance-Substitution</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
 </head>
 <body>
-  <h1>DDR Web Player</h1>
+  <h1>Dance Dance Substitution</h1>
 
-  <audio id="song" controls autoplay>
-    <source src="{{ url_for('static', filename='downloaded_song.mp3') }}" type="audio/mpeg">
-    Your browser does not support the audio tag.
-  </audio>
+  <form action="/process" method="post">
+    <label for="youtube_url">Enter YouTube URL:</label><br>
+    <input type="text" id="youtube_url" name="youtube_url" size="50" required>
+    <input type="submit" value="Generate Steps">
+  </form>
 
-  <div id="game-container">
-    <div id="hit-zone"></div>
-  </div>
+  {% if song_ready %}
+    <p>There are {{ num_steps }} steps.</p>
 
-  <div id="score">Score: 0</div>
+    <audio id="song" controls autoplay>
+      <source src="{{ url_for('static', filename='downloaded_song.mp3') }}" type="audio/mpeg">
+      Your browser does not support the audio tag.
+    </audio>
 
-  <script>
-    const song = document.getElementById("song");
-    const gameContainer = document.getElementById("game-container");
-    const hitZone = document.getElementById("hit-zone");
-    let arrows = [];
-    let score = 0;
-    const speed = 100; // px/s
+    <div id="game-container">
+      <div id="hit-zone"></div>
+    </div>
 
-    const directionMap = {
-      "ArrowLeft": "left",
-      "ArrowDown": "down",
-      "ArrowUp": "up",
-      "ArrowRight": "right"
-    };
+    <div id="score">Score: 0</div>
 
-    fetch("/steps")
-      .then(res => res.json())
-      .then(data => {
-        arrows = data.arrows.map(a => ({
-          ...a,
-          el: createArrowElement(a.direction, a.time),
-          hit: false
-        }));
-        song.addEventListener("canplay", startGame);
+    <script>
+      const song = document.getElementById("song");
+      const gameContainer = document.getElementById("game-container");
+      const hitZone = document.getElementById("hit-zone");
+      let arrows = [];
+      let score = 0;
+      const speed = 100;
+
+      const directionMap = {
+        "ArrowLeft": "left",
+        "ArrowDown": "down",
+        "ArrowUp": "up",
+        "ArrowRight": "right"
+      };
+
+      fetch("/steps")
+        .then(res => res.json())
+        .then(data => {
+          arrows = data.arrows.map(a => ({
+            ...a,
+            el: createArrowElement(a.direction, a.time),
+            hit: false
+          }));
+          song.addEventListener("canplay", startGame);
+        });
+
+      function createArrowElement(dir, time) {
+        const el = document.createElement("div");
+        el.classList.add("arrow");
+        el.dataset.dir = dir;
+        el.textContent = getArrowSymbol(dir);
+        gameContainer.appendChild(el);
+        return el;
+      }
+
+      function getArrowSymbol(dir) {
+        switch (dir) {
+          case "left": return "←";
+          case "down": return "↓";
+          case "up": return "↑";
+          case "right": return "→";
+        }
+      }
+
+      function startGame() {
+        requestAnimationFrame(renderLoop);
+      }
+
+      function renderLoop() {
+        const now = song.currentTime;
+        for (const arrow of arrows) {
+          const timeUntilHit = arrow.time - now;
+          const y = (timeUntilHit * speed);
+          if (y < -60 || arrow.hit) {
+            arrow.el.style.display = "none";
+          } else {
+            arrow.el.style.bottom = `${y}px`;
+          }
+        }
+        requestAnimationFrame(renderLoop);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (!(e.code in directionMap)) return;
+        const dir = directionMap[e.code];
+        const now = song.currentTime;
+
+        for (const arrow of arrows) {
+          if (arrow.hit || arrow.direction !== dir) continue;
+          const diff = Math.abs(arrow.time - now);
+          if (diff < 0.25) {
+            arrow.hit = true;
+            arrow.el.style.display = "none";
+            score += 100;
+            document.getElementById("score").innerText = `Score: ${score}`;
+            break;
+          }
+        }
+
+        flashHit(dir);
       });
 
-    function createArrowElement(dir, time) {
-      const el = document.createElement("div");
-      el.classList.add("arrow");
-      el.dataset.dir = dir;
-      el.textContent = getArrowSymbol(dir);
-      gameContainer.appendChild(el);
-      return el;
-    }
-
-    function getArrowSymbol(dir) {
-      switch (dir) {
-        case "left": return "←";
-        case "down": return "↓";
-        case "up": return "↑";
-        case "right": return "→";
+      function flashHit(dir) {
+        const el = document.createElement("div");
+        el.classList.add("arrow", "flash");
+        el.dataset.dir = dir;
+        el.textContent = getArrowSymbol(dir);
+        el.style.bottom = "10px";
+        gameContainer.appendChild(el);
+        setTimeout(() => el.remove(), 200);
       }
-    }
-
-    function startGame() {
-      requestAnimationFrame(renderLoop);
-    }
-
-    function renderLoop() {
-      const now = song.currentTime;
-      for (const arrow of arrows) {
-        const timeUntilHit = arrow.time - now;
-        const y = (timeUntilHit * speed);
-        if (y < -60 || arrow.hit) {
-          arrow.el.style.display = "none";
-        } else {
-          arrow.el.style.bottom = `${y}px`;
-        }
-      }
-      requestAnimationFrame(renderLoop);
-    }
-
-    document.addEventListener("keydown", (e) => {
-      if (!(e.code in directionMap)) return;
-      const dir = directionMap[e.code];
-      const now = song.currentTime;
-
-      for (const arrow of arrows) {
-        if (arrow.hit || arrow.direction !== dir) continue;
-        const diff = Math.abs(arrow.time - now);
-        if (diff < 0.25) {
-          arrow.hit = true;
-          arrow.el.style.display = "none";
-          score += 100;
-          document.getElementById("score").innerText = `Score: ${score}`;
-          break;
-        }
-      }
-
-      flashHit(dir);
-    });
-
-    function flashHit(dir) {
-      const el = document.createElement("div");
-      el.classList.add("arrow", "flash");
-      el.dataset.dir = dir;
-      el.textContent = getArrowSymbol(dir);
-      el.style.bottom = "10px";
-      gameContainer.appendChild(el);
-      setTimeout(() => el.remove(), 200);
-    }
-  </script>
+    </script>
+  {% endif %}
 </body>
 </html>
