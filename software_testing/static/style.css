@@ -1,8 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Fugaz+One&family=Snowburst+One&display=swap');
+
 body {
   font-family: sans-serif;
   text-align: center;
   background: #111;
   color: white;
+}
+
+h1{
+  font-family: "Fugaz One", sans-serif;
+  font-size: 35px
+}
+
+label, p {
+  font-size: 25px;
+  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
+}
+
+input {
+  margin-top: 10px;
+  padding: 7px;
+  font-size: 18px
 }
 
 #arrows {

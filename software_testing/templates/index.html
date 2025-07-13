@@ -14,7 +14,7 @@
   </form>
 
   {% if song_ready %}
-    <p>There are {{ num_steps }} steps.</p>
+    <p style = "font-size: 12px">There are {{ num_steps }} steps.</p>
 
     <audio id="song" controls autoplay>
       <source src="{{ url_for('static', filename='downloaded_song.mp3') }}" type="audio/mpeg">
