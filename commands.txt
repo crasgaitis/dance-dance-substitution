@@ -1,6 +1,7 @@
 docker run -ti --rm -p 8888:8888 -p 3000:3000 -v "%CD%":/workspace ghcr.io/mtg/essentia:ubuntu20.04-v2.1_beta5 bash
 apt update && apt install -y software-properties-common python3-pip ffmpeg
-pip install jupyter Flask pytubefix
+pip install jupyter Flask
+pip install "pytubefix<9.4.0"
 cd /workspace
 
 jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root

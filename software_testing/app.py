@@ -10,6 +10,11 @@ app = Flask(__name__)
 def index():
     return render_template("index.html", song_ready=False)
 
+@app.route("/create", methods=["POST"])
+def create():
+    # TODO: user interface to build new json file
+    pass
+
 @app.route("/process", methods=["POST"])
 def process():
     youtube_url = request.form["youtube_url"]

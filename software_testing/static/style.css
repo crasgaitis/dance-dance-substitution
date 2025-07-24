@@ -29,6 +29,11 @@ input {
   margin: 40px 0;
 }
 
+.arrow.optimal {
+  color: lime;
+  text-shadow: 0 0 10px green;
+}
+
 #game-container {
   position: relative;
   width: 300px;

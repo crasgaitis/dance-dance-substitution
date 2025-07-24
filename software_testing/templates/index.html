@@ -10,7 +10,7 @@
   <form action="/process" method="post">
     <label for="youtube_url">Enter YouTube URL:</label><br>
     <input type="text" id="youtube_url" name="youtube_url" size="50" required>
-    <input type="submit" value="Generate Steps">
+    <input type="submit" value="Dance">
   </form>
 
   {% if song_ready %}
@@ -20,7 +20,7 @@
       <source src="{{ url_for('static', filename='downloaded_song.mp3') }}" type="audio/mpeg">
       Your browser does not support the audio tag.
     </audio>
-
+    <BR/>
     <div id="game-container">
       <div id="hit-zone"></div>
     </div>
@@ -80,10 +80,19 @@
         for (const arrow of arrows) {
           const timeUntilHit = arrow.time - now;
           const y = (timeUntilHit * speed);
+
           if (y < -60 || arrow.hit) {
             arrow.el.style.display = "none";
           } else {
+            arrow.el.style.display = "block";
             arrow.el.style.bottom = `${y}px`;
+
+            const diff = Math.abs(arrow.time - now);
+            if (diff <= 0.1) {
+              arrow.el.classList.add("optimal");
+            } else {
+              arrow.el.classList.remove("optimal");
+            }
           }
         }
         requestAnimationFrame(renderLoop);
